@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title> 
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.22/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+<h1>Phone Data Show</h1>
+
+<div class="w-full max-w-sm mx-auto mt-5">
+  <div class="flex items-center">
+    <input id="search-box" type="text" placeholder="Search..." class="w-full px-4 py-2 border">
+    <button onclick="handleSearch()" class="px-4 py-2 bg-blue-500 text-white">Search</button>
+  </div>
+</div>
+
+<div id="phones-container" class="phones-container flex justify-around items-center flex-wrap">
+  <div id="spinner" class="hidden"> 
+    <span class="loading loading-bars loading-md"></span> 
+  </div>
+</div>
+
+<div class="text-center">
+  <button onclick="handleShowAll()" class="btn bg-red-500 mt-5">Show All</button>
+</div>
+
+<script>
+  const loadAllPhone = async (status, searchText) => {
+    document.getElementById('spinner').classList.remove('hidden')
+    const res = await fetch(`https://openapi.programming-hero.com/api/phones?search=${searchText || "iphone"}`)
+    const data = await res.json()
+    if (status) {
+      displayAllPhone(data.data)
+    } else {
+      displayAllPhone(data.data.slice(0, 6))
+    }
+    document.getElementById('spinner').classList.add('hidden')
+  }
+
+  const displayAllPhone = (phones) => {
+    const phoneContainer = document.getElementById("phones-container")
+    phoneContainer.innerHTML = ''
+    phones.forEach(phone => {
+      const div = document.createElement("div")
+      div.innerHTML = `
+        <div class="card">
+          <h1>${phone.slug}</h1>
+          <img src="${phone.image}">
+          <h2>${phone.brand}</h2>
+        </div>`
+      phoneContainer.appendChild(div)
+    })
+  }
+
+  const handleSearch = () => loadAllPhone(true, document.getElementById("search-box").value)
+  const handleShowAll = () => loadAllPhone(true)
+  loadAllPhone()
+</script>
+
+</body>
+</html>

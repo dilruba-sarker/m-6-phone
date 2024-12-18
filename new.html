@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Data Show</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.22/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #spinner {
+            display: none; /* Loader is hidden initially */
+        }
+    </style>
+</head>
+<body>
+    <h1>Phone Data Show</h1>
+
+    <div class="w-full max-w-sm mx-auto mt-5">
+        <div class="flex items-center">
+            <input id="search-box" type="text" placeholder="Search..." class="w-full px-4 py-2 border border-gray-300 rounded-l-lg">
+            <button onclick="handleSearch()" class="px-4 py-2 bg-blue-500 text-white">Search</button>
+        </div>
+    </div>
+
+    <div id="phones-container" class="phones-container flex justify-around items-center flex-wrap mt-5">
+        <!-- Spinner -->
+        <div id="spinner"> 
+            <span class="loading loading-bars loading-md"></span> 
+        </div>
+    </div>
+
+    <div class="text-center">
+        <button onclick="handleShowAll()" class="btn bg-red-500 text-white mt-5">Show All</button>
+    </div>
+
+    <script>
+        const loadAllPhone = async (status, searchText) => {
+            const spinner = document.getElementById('spinner');
+            if (spinner) spinner.style.display = 'block'; // Show the spinner
+
+            try {
+                const res = await fetch(`https://openapi.programming-hero.com/api/phones?search=${searchText ? searchText : "iphone"}`);
+                const data = await res.json();
+                if (status) {
+                    displayAllPhone(data.data);
+                } else {
+                    displayAllPhone(data.data.slice(0, 6));
+                }
+            } catch (error) {
+                console.error('Error fetching phone data:', error);
+            } finally {
+                if (spinner) spinner.style.display = 'none'; // Hide the spinner after loading
+            }
+        };
+
+        const displayAllPhone = (phones) => {
+            const phoneContainer = document.getElementById("phones-container");
+            phoneContainer.innerHTML = ' ';
+            if (phones.length === 0) {
+                phoneContainer.innerHTML = `<h2 class="text-center text-xl text-red-500 mt-5">No Phones Found</h2>`;
+                return;
+            }
+            phones.forEach(phone => {
+                const { brand, slug, image } = phone;
+                const div = document.createElement("div");
+                div.innerHTML = `
+                    <div class="card bg-base-100 w-96 shadow-xl">
+                        <h1>${slug}</h1>
+                        <figure class="px-10 pt-10">
+                            <img src="${image}" alt="Phone" class="rounded-xl" />
+                        </figure>
+                        <div class="card-body items-center text-center">
+                            <h2 class="card-title">${brand}</h2>
+                            <p>If a dog chews shoes whose shoes does he choose?</p>
+                            <div class="card-actions">
+                                <button class="btn btn-primary">Details</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                phoneContainer.appendChild(div);
+            });
+        };
+
+        const handleShowAll = () => {
+            const spinner = document.getElementById('spinner');
+            spinner.style.display = 'block'; // Show spinner when "Show All" button is clicked
+
+            // Wait for the UI to repaint, then call loadAllPhone
+            setTimeout(() => {
+                const searchText = document.getElementById("search-box").value.trim();
+                loadAllPhone(true, searchText);
+            }, 0);
+        };
+
+        const handleSearch = () => {
+            const spinner = document.getElementById('spinner');
+            spinner.style.display = 'block'; // Show spinner when "Search" button is clicked
+
+            const searchText = document.getElementById("search-box").value.trim();
+            if (!searchText) {
+                alert("Please enter a phone name to search.");
+                spinner.style.display = 'none'; // Hide spinner if no search text
+                return;
+            }
+
+            // Wait for the UI to repaint, then call loadAllPhone
+            setTimeout(() => {
+                loadAllPhone(false, searchText);
+            }, 0);
+        };
+
+        // Initial load to display some phones
+        loadAllPhone(false);
+    </script>
+</body>
+</html>
